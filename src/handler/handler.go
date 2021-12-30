@@ -1,116 +1,115 @@
 package handler
 
 import (
-	"strconv"
-	"time"
-
 	"github.com/cheolgyu/stock-write-common/logging"
 	"github.com/cheolgyu/stock-write-project-52-weeks/src/dao"
 	"github.com/cheolgyu/stock-write-project-52-weeks/src/model"
 )
 
-var TimeList []int
+var TimeFrames []model.TimeFrame
+
+func init() {
+	setTimeFrames()
+}
 
 func Handler() {
+
 	codes, err := dao.GetCodeAll()
 
 	if err != nil {
 		logging.Log.Panic(err)
 	}
 
-	last_dt, new_dt, err := dao.SelecDate()
-	if err != nil {
-		logging.Log.Panic(err)
-	}
-	setTimeList(new_dt)
-
-	logging.Log.Info(last_dt, new_dt)
-
 	for _, v := range codes[:10] {
 
-		list, err := dao.SelectList(v.Id, last_dt)
+		res, err := dao.SelectList(v.Id)
 		if err != nil {
 			logging.Log.Panic(err)
 		}
-		find(list, new_dt)
+		pc := split_by_price_type(res)
 
 	}
 
 }
 
-func find(list []model.List, new_dt int) {
-
-	var ptype = [4]int{1, 2, 3, 4}
-
-	for _, v := range ptype {
-		loop_by_price_type(list, v)
-	}
-
-}
-
-// ptype [1:저가,2:고가,3:시가,4:종가]
-func loop_by_price_type(list []model.List, ptype int) {
-
-	//old_price
-	var omax float32
-	var omax_dt int
-	var omin float32
-	var omin_dt int
+func split_by_price_type(list []model.Res) model.PriceCode {
+	var pcode model.PriceCode
 
 	for _, v := range list {
+		pobjs := v.Convert_PriceObject()
+		pcode.PriceArr[0].PriceResObjects = append(pcode.PriceArr[0].PriceResObjects, pobjs[0])
+		pcode.PriceArr[1].PriceResObjects = append(pcode.PriceArr[1].PriceResObjects, pobjs[1])
+		pcode.PriceArr[2].PriceResObjects = append(pcode.PriceArr[2].PriceResObjects, pobjs[2])
+		pcode.PriceArr[3].PriceResObjects = append(pcode.PriceArr[3].PriceResObjects, pobjs[3])
+	}
+	return pcode
+}
 
-		//cur_price
-		var p float32
-		switch ptype {
-		case 1:
-			p = v.PriceMarket.LowPrice
-		case 2:
-			p = v.PriceMarket.HighPrice
-		case 3:
-			p = v.PriceMarket.OpenPrice
-		case 4:
-			p = v.PriceMarket.ClosePrice
-		}
+func search(pcode model.PriceCode) {
 
-		if omax < p {
-			omax = p
-			omax_dt = v.PriceMarket.Dt
-		}
-
-		if omin > p {
-			omin = p
-			omin_dt = v.PriceMarket.Dt
-		}
+	for i, v := range pcode.PriceArr {
+		plh := loop_by_priceArr(v)
+		plh.PriceType = i
 	}
 
+}
+
+func loop_by_priceArr(parr model.PriceArr) model.PriceLH {
+	var plh model.PriceLH
+
+	var (
+		minDt  int
+		minVal float32
+		maxDt  int
+		maxVal float32
+	)
+
+	if len(parr.PriceResObjects) > 0 {
+		minDt = parr.PriceResObjects[0].Date
+		minVal = parr.PriceResObjects[0].Price
+		maxDt = parr.PriceResObjects[0].Date
+		maxVal = parr.PriceResObjects[0].Price
+	}
+
+	for _, v := range parr.PriceResObjects {
+
+		breakVal := v.DayCnt
+
+		if v.Price > maxVal {
+			maxDt = v.Date
+			maxVal = v.Price
+		} else {
+			minDt = v.Date
+			minVal = v.Price
+		}
+	}
+	plh.Cur.Date = parr.PriceResObjects[0].Date
+	plh.Cur.Price = parr.PriceResObjects[0].Price
+	plh.Max.Date = maxDt
+	plh.Max.Price = maxVal
+	plh.Min.Date = minDt
+	plh.Min.Price = minVal
+
+	return plh
 }
 
 //일자 목록 구하기
-func setTimeList(new_dt int) {
-	dt := strconv.Itoa(new_dt)
-	logging.Log.Debug(dt)
-	date, err := time.Parse("20060102", dt)
-	if err != nil {
-		logging.Log.Error(err)
-		logging.Log.Panic(err)
-	}
+func setTimeFrames() {
 
-	var list []int
-	var days = [3]int{7, 7 * 2, 7 * 3}
-	var months []int
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 7, UnitType: 1, UnitVal: 1})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 14, UnitType: 1, UnitVal: 2})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 28, UnitType: 1, UnitVal: 3})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 1, UnitType: 2, UnitVal: 1})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 2, UnitType: 2, UnitVal: 2})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 3, UnitType: 2, UnitVal: 3})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 4, UnitType: 2, UnitVal: 4})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 5, UnitType: 2, UnitVal: 5})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 6, UnitType: 2, UnitVal: 6})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 7, UnitType: 2, UnitVal: 7})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 8, UnitType: 2, UnitVal: 8})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 9, UnitType: 2, UnitVal: 9})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 10, UnitType: 2, UnitVal: 10})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 11, UnitType: 2, UnitVal: 11})
+	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 12, UnitType: 2, UnitVal: 12})
 
-	for i := 1; i < 13; i++ {
-		months = append(months, i)
-	}
-
-	for _, v := range days {
-		sv, _ := strconv.Atoi(date.AddDate(0, 0, v).Format("20060102"))
-		list = append(list, sv)
-	}
-
-	for _, v := range months {
-		sv, _ := strconv.Atoi(date.AddDate(0, v, 0).Format("20060102"))
-		list = append(list, sv)
-	}
-	TimeList = list
 }
