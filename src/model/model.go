@@ -4,6 +4,9 @@ import (
 	cmm_model "github.com/cheolgyu/stock-write-model/model"
 )
 
+/*
+DayCnt : 해당 일자가 365일에서 얼마나 경과된 일자인지
+*/
 type Res struct {
 	cmm_model.Code
 	cmm_model.PriceMarket
@@ -11,7 +14,7 @@ type Res struct {
 }
 
 // 0:op 1:cp 2:lp 3:hp
-func (o *Res) Convert_PriceObject() [4]PriceResObject {
+func (o *Res) StuctByPrice() [4]PriceResObject {
 	var list [4]PriceResObject
 
 	dt := o.PriceMarket.Dt
