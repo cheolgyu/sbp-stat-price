@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"fmt"
+
 	"github.com/cheolgyu/stock-write-common/db"
 	"github.com/cheolgyu/stock-write-common/logging"
 	cmm_model "github.com/cheolgyu/stock-write-model/model"
@@ -21,9 +23,12 @@ where code_id = $1 and TO_DATE(dt::text,'YYYYMMDD')  > tmp.before_year
 order by dt desc
 `
 
-func SelectList(code_id int) ([]model.Res, error) {
+/*
+	조회 및 가격별 분류 및 반환
+*/
+func SelectList(code_id int) (model.CodeInfo, error) {
 
-	var res []model.Res
+	var res model.CodeInfo
 	rows, err := db.Conn.Query(query_select_list, code_id)
 	if err != nil {
 		logging.Log.Fatalln(err)
@@ -39,7 +44,14 @@ func SelectList(code_id int) ([]model.Res, error) {
 			logging.Log.Fatal(err)
 			panic(err)
 		}
-		res = append(res, item)
+
+		convert := item.ByPrice()
+		res.Code.Id = item.Code.Id
+		res.OP = append(res.OP, convert[0])
+		res.CP = append(res.CP, convert[1])
+		res.LP = append(res.LP, convert[2])
+		res.HP = append(res.HP, convert[3])
+
 	}
 
 	// Check for errors from iterating over rows.
@@ -51,24 +63,29 @@ func SelectList(code_id int) ([]model.Res, error) {
 	return res, err
 }
 
-func Insert(item cmm_model.Tb52Weeks) error {
+func Insert(list []cmm_model.Tb52Weeks) error {
 
 	client := db.Conn
 	stmt, err := client.Prepare(query_insert)
 	if err != nil {
-		logging.Log.Println("쿼리:Prepare 오류: ", item)
+		logging.Log.Println("쿼리:Prepare 오류: ")
 		logging.Log.Fatal(err)
 		panic(err)
 	}
 	defer stmt.Close()
-	//code_id, price_type, row_type, unit_type, unit, np_dt, np_val, op_dt, op_val, p_percent
-	_, err = stmt.Exec(item.Code_id,
-		item.Price_type, item.Row_type, item.Unit_type, item.Unit, item.Np_dt, item.Np_val, item.Op_dt, item.Op_val, item.P_percent,
-	)
-	if err != nil {
-		logging.Log.Println("쿼리:stmt.Exec 오류: ", item)
-		logging.Log.Fatal(err)
-		panic(err)
+
+	for _, item := range list {
+
+		//code_id, price_type, row_type, unit_type, unit, np_dt, np_val, op_dt, op_val, p_percent)
+		_, err := stmt.Exec(
+			item.Code_id, item.Price_type, item.Row_type, item.Unit_type, item.Unit, item.Np_dt, item.Np_val, item.Op_dt, item.Op_val, item.P_percent,
+		)
+		if err != nil {
+			err_item := fmt.Sprintf("%+v", item)
+			logging.Log.Println("쿼리:InsertCompanyState:stmt.Exec 오류: ", err_item)
+			logging.Log.Fatal(err)
+			panic(err)
+		}
 	}
 	return err
 }

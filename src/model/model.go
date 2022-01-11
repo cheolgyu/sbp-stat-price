@@ -4,6 +4,11 @@ import (
 	cmm_model "github.com/cheolgyu/stock-write-model/model"
 )
 
+const OP int = 0
+const CP int = 1
+const LP int = 2
+const HP int = 3
+
 /*
 DayCnt : 해당 일자가 365일에서 얼마나 경과된 일자인지
 */
@@ -13,61 +18,100 @@ type Res struct {
 	DayCnt int
 }
 
-// 0:op 1:cp 2:lp 3:hp
-func (o *Res) StuctByPrice() [4]PriceResObject {
-	var list [4]PriceResObject
+type CodeInfo struct {
+	cmm_model.Code
+
+	OP []PointInfo
+	HP []PointInfo
+	LP []PointInfo
+	CP []PointInfo
+}
+
+func (o *Res) ByPrice() [4]PointInfo {
+	var list [4]PointInfo
 
 	dt := o.PriceMarket.Dt
 
-	list[0] = PriceResObject{
-		Date:   dt,
-		DayCnt: o.DayCnt,
-		Price:  o.PriceMarket.OpenPrice,
+	list[0] = PointInfo{
+		Point: Point{
+			dt, o.PriceMarket.OpenPrice,
+		},
+		Xcnt: o.DayCnt,
 	}
-	list[1] = PriceResObject{
-		Date:   dt,
-		DayCnt: o.DayCnt,
-		Price:  o.PriceMarket.ClosePrice,
+	list[1] = PointInfo{
+		Point: Point{
+			dt, o.PriceMarket.ClosePrice,
+		},
+		Xcnt: o.DayCnt,
 	}
-	list[2] = PriceResObject{
-		Date:   dt,
-		DayCnt: o.DayCnt,
-		Price:  o.PriceMarket.LowPrice,
+	list[2] = PointInfo{
+		Point: Point{
+			dt, o.PriceMarket.LowPrice,
+		},
+		Xcnt: o.DayCnt,
 	}
-	list[3] = PriceResObject{
-		Date:   dt,
-		DayCnt: o.DayCnt,
-		Price:  o.PriceMarket.HighPrice,
+	list[3] = PointInfo{
+		Point: Point{
+			dt, o.PriceMarket.HighPrice,
+		},
+		Xcnt: o.DayCnt,
 	}
 
 	return list
 }
 
-type PriceObject struct {
-	Date  int
-	Price float32
+/*
+X : DATE
+Y : PRICE
+*/
+type Point struct {
+	X int
+	Y float32
 }
 
-type PriceResObject struct {
-	Date   int
-	Price  float32
-	DayCnt int
+/*
+
+Xcnt : int
+
+Xcnt :: X 값이 365일 부터 몇일째인지 sql로 계산된 일수
+*/
+type PointInfo struct {
+	Point Point
+	Xcnt  int
 }
 
-type PriceArr struct {
-	PriceResObjects []PriceResObject
+// type PriceArr struct {
+// 	PointInfos []PointInfo
+// }
+
+// // 0:op 1:cp 2:lp 3:hp
+// type PriceCode struct {
+// 	PriceArr []PriceArr
+// }
+/*
+ 0:op 1:cp 2:lp 3:hp
+*/
+type PriceInfo struct {
+	Cur Point
+	Min Point
+	Max Point
 }
 
-// 0:op 1:cp 2:lp 3:hp
-type PriceCode struct {
-	PriceArr []PriceArr
-}
-
-type PriceLH struct {
+type PriceInfoItemRes struct {
+	cmm_model.Code
 	PriceType int
-	Cur       PriceObject
-	Min       PriceObject
-	Max       PriceObject
+	Arr       []PriceInfoItem
+}
+
+type PriceInfoItem struct {
+	PriceInfo
+	TimeFrame
+}
+
+func (o *PriceInfoItem) to_comm_model() [2]cmm_model.Tb52Weeks {
+	var res [2]cmm_model.Tb52Weeks
+
+	return res
 }
 
 type TimeFrame struct {

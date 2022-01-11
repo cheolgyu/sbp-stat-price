@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/cheolgyu/stock-write-common/logging"
+	cmm_model "github.com/cheolgyu/stock-write-model/model"
 	"github.com/cheolgyu/stock-write-project-52-weeks/src/dao"
 	"github.com/cheolgyu/stock-write-project-52-weeks/src/model"
 )
@@ -19,78 +20,96 @@ func Handler() {
 	if err != nil {
 		logging.Log.Panic(err)
 	}
-
 	for _, v := range codes[:10] {
 
-		res, err := dao.SelectList(v.Id)
+		code_info, err := dao.SelectList(v.Id)
 		if err != nil {
 			logging.Log.Panic(err)
 		}
-		pc := split_by_price_type(res)
-
-	}
-
-}
-
-func split_by_price_type(list []model.Res) model.PriceCode {
-	var pcode model.PriceCode
-
-	for _, v := range list {
-		pobjs := v.Convert_PriceObject()
-		pcode.PriceArr[0].PriceResObjects = append(pcode.PriceArr[0].PriceResObjects, pobjs[0])
-		pcode.PriceArr[1].PriceResObjects = append(pcode.PriceArr[1].PriceResObjects, pobjs[1])
-		pcode.PriceArr[2].PriceResObjects = append(pcode.PriceArr[2].PriceResObjects, pobjs[2])
-		pcode.PriceArr[3].PriceResObjects = append(pcode.PriceArr[3].PriceResObjects, pobjs[3])
-	}
-	return pcode
-}
-
-func search(pcode model.PriceCode) {
-
-	for i, v := range pcode.PriceArr {
-		plh := loop_by_priceArr(v)
-		plh.PriceType = i
-	}
-
-}
-
-func loop_by_priceArr(parr model.PriceArr) model.PriceLH {
-	var plh model.PriceLH
-
-	var (
-		minDt  int
-		minVal float32
-		maxDt  int
-		maxVal float32
-	)
-
-	if len(parr.PriceResObjects) > 0 {
-		minDt = parr.PriceResObjects[0].Date
-		minVal = parr.PriceResObjects[0].Price
-		maxDt = parr.PriceResObjects[0].Date
-		maxVal = parr.PriceResObjects[0].Price
-	}
-
-	for _, v := range parr.PriceResObjects {
-
-		breakVal := v.DayCnt
-
-		if v.Price > maxVal {
-			maxDt = v.Date
-			maxVal = v.Price
-		} else {
-			minDt = v.Date
-			minVal = v.Price
+		list := find(code_info)
+		err = dao.Insert(list)
+		if err != nil {
+			logging.Log.Panic(err)
 		}
 	}
-	plh.Cur.Date = parr.PriceResObjects[0].Date
-	plh.Cur.Price = parr.PriceResObjects[0].Price
-	plh.Max.Date = maxDt
-	plh.Max.Price = maxVal
-	plh.Min.Date = minDt
-	plh.Min.Price = minVal
 
-	return plh
+}
+
+func find(item model.CodeInfo) []cmm_model.Tb52Weeks {
+
+	var res []cmm_model.Tb52Weeks
+	res = append(res, findPointInfo(item.Code.Id, item.OP, model.OP)...)
+	res = append(res, findPointInfo(item.Code.Id, item.CP, model.CP)...)
+	res = append(res, findPointInfo(item.Code.Id, item.LP, model.LP)...)
+	res = append(res, findPointInfo(item.Code.Id, item.HP, model.HP)...)
+
+	return res
+}
+
+func findPointInfo(code_id int, arr []model.PointInfo, price_type int) []cmm_model.Tb52Weeks {
+	var price_info model.PriceInfo
+
+	var res []cmm_model.Tb52Weeks
+
+	if len(arr) > 0 {
+		price_info.Cur.X = arr[0].Point.X
+		price_info.Cur.Y = arr[0].Point.Y
+		price_info.Min.X = arr[0].Point.X
+		price_info.Min.Y = arr[0].Point.Y
+		price_info.Max.X = arr[0].Point.X
+		price_info.Max.Y = arr[0].Point.Y
+	}
+	var break_timeframes int = 0
+
+	for _, v := range arr {
+
+		//stop_cnt := v.Xcnt
+
+		if v.Point.Y >= price_info.Max.Y {
+			price_info.Max.Y = v.Point.Y
+			price_info.Max.X = v.Point.X
+		} else {
+			price_info.Min.Y = v.Point.Y
+			price_info.Min.X = v.Point.X
+		}
+
+		for i, t := range TimeFrames {
+			if v.Xcnt > t.Day && break_timeframes <= i {
+				break_timeframes = i
+
+				max_item := cmm_model.Tb52Weeks{
+					Code_id:    code_id,
+					Price_type: price_type,
+					Row_type:   true,
+					Unit_type:  t.UnitType,
+					Unit:       t.UnitVal,
+					Np_dt:      price_info.Cur.X,
+					Np_val:     price_info.Cur.Y,
+					Op_dt:      price_info.Max.X,
+					Op_val:     price_info.Max.Y,
+					P_percent:  price_info.Max.Y / price_info.Cur.Y * 100,
+				}
+				res = append(res, max_item)
+
+				min_item := cmm_model.Tb52Weeks{
+					Code_id:    code_id,
+					Price_type: price_type,
+					Row_type:   false,
+					Unit_type:  t.UnitType,
+					Unit:       t.UnitVal,
+					Np_dt:      price_info.Cur.X,
+					Np_val:     price_info.Cur.Y,
+					Op_dt:      price_info.Min.X,
+					Op_val:     price_info.Min.Y,
+					P_percent:  price_info.Min.Y / price_info.Cur.Y * 100,
+				}
+				res = append(res, min_item)
+			}
+		}
+
+	}
+
+	return res
 }
 
 //일자 목록 구하기
