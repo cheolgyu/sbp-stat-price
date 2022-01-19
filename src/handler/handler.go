@@ -8,9 +8,30 @@ import (
 )
 
 var TimeFrames []model.TimeFrame
+var Configs []cmm_model.Config
+
+var CONFIG_OP = -1
+var CONFIG_CP = -1
+var CONFIG_LP = -1
+var CONFIG_HP = -1
 
 func init() {
 	setTimeFrames()
+	configs, _ := dao.GetConfigListByUpperCode()
+	Configs = configs
+
+	for _, v := range configs {
+		switch v.Code {
+		case "open":
+			CONFIG_OP = v.Id
+		case "close":
+			CONFIG_CP = v.Id
+		case "low":
+			CONFIG_LP = v.Id
+		case "high":
+			CONFIG_HP = v.Id
+		}
+	}
 }
 
 func Handler() {
@@ -38,10 +59,10 @@ func Handler() {
 func find(item model.CodeInfo) []cmm_model.Tb52Weeks {
 
 	var res []cmm_model.Tb52Weeks
-	res = append(res, findPointInfo(item.Code.Id, item.OP, model.OP)...)
-	res = append(res, findPointInfo(item.Code.Id, item.CP, model.CP)...)
-	res = append(res, findPointInfo(item.Code.Id, item.LP, model.LP)...)
-	res = append(res, findPointInfo(item.Code.Id, item.HP, model.HP)...)
+	res = append(res, findPointInfo(item.Code.Id, item.OP, CONFIG_OP)...)
+	res = append(res, findPointInfo(item.Code.Id, item.CP, CONFIG_CP)...)
+	res = append(res, findPointInfo(item.Code.Id, item.LP, CONFIG_LP)...)
+	res = append(res, findPointInfo(item.Code.Id, item.HP, CONFIG_HP)...)
 
 	return res
 }

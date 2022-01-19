@@ -4,11 +4,6 @@ import (
 	cmm_model "github.com/cheolgyu/stock-write-model/model"
 )
 
-const OP int = 0
-const CP int = 1
-const LP int = 2
-const HP int = 3
-
 /*
 DayCnt : 해당 일자가 365일에서 얼마나 경과된 일자인지
 */

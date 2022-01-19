@@ -5,6 +5,8 @@ import (
 
 	"github.com/cheolgyu/stock-write-common/db"
 	"github.com/cheolgyu/stock-write-model/model"
+	mod_code "github.com/cheolgyu/stock-write-module-meta/code"
+	mod_config "github.com/cheolgyu/stock-write-module-meta/config"
 	"github.com/cheolgyu/stock-write-project-52-weeks/src/c"
 )
 
@@ -21,26 +23,11 @@ func Update_info() {
 }
 
 func GetCodeAll() ([]model.Code, error) {
-	var res []model.Code
-	rows, err := db.Conn.Query("select id, code, code_type from meta.code   order by id  ")
-	if err != nil {
-		log.Fatalln(err)
-		panic(err)
-	}
-	defer rows.Close()
+	res, err := mod_code.GetCodeList(db.Conn)
+	return res, err
+}
 
-	for rows.Next() {
-		c := model.Code{}
-		if err := rows.Scan(&c.Id, &c.Code, &c.Code_type); err != nil {
-			log.Fatal(err)
-			panic(err)
-		}
-		res = append(res, c)
-	}
-	// Check for errors from iterating over rows.
-	if err := rows.Err(); err != nil {
-		log.Fatal(err)
-		panic(err)
-	}
+func GetConfigListByUpperCode() ([]model.Config, error) {
+	res, err := mod_config.GetConfigListByUpperCode(db.Conn, mod_config.CONFIG_UPPER_CODE_PRICE_TYPE)
 	return res, err
 }
