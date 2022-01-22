@@ -10,8 +10,8 @@ import (
 )
 
 const query_insert = `INSERT INTO project.tb_52_weeks( ` +
-	` code_id, price_type, row_type, unit_type, unit, np_dt, np_val, op_dt, op_val, p_percent) ` +
-	` VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10); `
+	` code_id, price_type, p1x_unit_type, p1x_unit, p1x, p1y, p2x, p2y, p3x, p3y, p3_type, p32y_percent) ` +
+	` VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12); `
 
 const query_select_list = `
 with tmp as (select TO_DATE(max(dt::text),'YYYYMMDD') - 365  as before_year
@@ -76,9 +76,11 @@ func Insert(list []cmm_model.Tb52Weeks) error {
 
 	for _, item := range list {
 
-		//code_id, price_type, row_type, unit_type, unit, np_dt, np_val, op_dt, op_val, p_percent)
+		//code_id, price_type, p1x_unit_type, p1x_unit, p1x, p1y, p2x, p2y, p3x, p3y, p3_type, p32y_percent
 		_, err := stmt.Exec(
-			item.Code_id, item.Price_type, item.Row_type, item.Unit_type, item.Unit, item.Np_dt, item.Np_val, item.Op_dt, item.Op_val, item.P_percent,
+			item.Code_id, item.Price_type, item.P1x_Unit_type, item.P1x_Unit,
+			item.P1.X, item.P1.Y, item.P2.X, item.P2.Y, item.P3.X, item.P3.Y,
+			item.P3_type, item.P32y_percent,
 		)
 		if err != nil {
 			err_item := fmt.Sprintf("%+v", item)

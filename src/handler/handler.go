@@ -99,30 +99,47 @@ func findPointInfo(code_id int, arr []model.PointInfo, price_type int) []cmm_mod
 				break_timeframes = i
 
 				max_item := cmm_model.Tb52Weeks{
-					Code_id:    code_id,
-					Price_type: price_type,
-					Row_type:   true,
-					Unit_type:  t.UnitType,
-					Unit:       t.UnitVal,
-					Np_dt:      price_info.Cur.X,
-					Np_val:     price_info.Cur.Y,
-					Op_dt:      price_info.Max.X,
-					Op_val:     price_info.Max.Y,
-					P_percent:  price_info.Max.Y / price_info.Cur.Y * 100,
+					Code_id:       code_id,
+					Price_type:    price_type,
+					P3_type:       cmm_model.P3_type_HIGH,
+					P1x_Unit_type: t.UnitType,
+					P1x_Unit:      t.UnitVal,
+					P1: cmm_model.P{
+						X: v.Point.X,
+						Y: v.Point.Y,
+					},
+					P2: cmm_model.P{
+						X: price_info.Cur.X,
+						Y: price_info.Cur.Y,
+					},
+					P3: cmm_model.P{
+						X: price_info.Max.X,
+						Y: price_info.Max.Y,
+					},
+					P32y_percent: cmm_model.Get_percent(price_info.Max.Y, price_info.Cur.Y),
 				}
 				res = append(res, max_item)
 
 				min_item := cmm_model.Tb52Weeks{
-					Code_id:    code_id,
-					Price_type: price_type,
-					Row_type:   false,
-					Unit_type:  t.UnitType,
-					Unit:       t.UnitVal,
-					Np_dt:      price_info.Cur.X,
-					Np_val:     price_info.Cur.Y,
-					Op_dt:      price_info.Min.X,
-					Op_val:     price_info.Min.Y,
-					P_percent:  price_info.Min.Y / price_info.Cur.Y * 100,
+					Code_id:       code_id,
+					Price_type:    price_type,
+					P3_type:       cmm_model.P3_type_LOW,
+					P1x_Unit_type: t.UnitType,
+					P1x_Unit:      t.UnitVal,
+					P1: cmm_model.P{
+						X: v.Point.X,
+						Y: v.Point.Y,
+					},
+					P2: cmm_model.P{
+						X: price_info.Cur.X,
+						Y: price_info.Cur.Y,
+					},
+					P3: cmm_model.P{
+						X: price_info.Min.X,
+						Y: price_info.Min.Y,
+					},
+
+					P32y_percent: cmm_model.Get_percent(price_info.Min.Y, price_info.Cur.Y),
 				}
 				res = append(res, min_item)
 			}
