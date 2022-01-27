@@ -16,7 +16,7 @@ var CONFIG_LP = -1
 var CONFIG_HP = -1
 
 func init() {
-	setTimeFrames()
+	setTimeFrames2()
 	configs, _ := dao.GetConfigListByUpperCode()
 	Configs = configs
 
@@ -32,6 +32,8 @@ func init() {
 			CONFIG_HP = v.Id
 		}
 	}
+
+	dao.Initail_table()
 }
 
 func Handler() {
@@ -41,7 +43,7 @@ func Handler() {
 	if err != nil {
 		logging.Log.Panic(err)
 	}
-	for _, v := range codes[:10] {
+	for _, v := range codes {
 
 		code_info, err := dao.SelectList(v.Id)
 		if err != nil {
@@ -68,35 +70,33 @@ func find(item model.CodeInfo) []cmm_model.Tb52Weeks {
 }
 
 func findPointInfo(code_id int, arr []model.PointInfo, price_type int) []cmm_model.Tb52Weeks {
-	var price_info model.PriceInfo
+	var tmp model.PriceInfo
 
 	var res []cmm_model.Tb52Weeks
 
 	if len(arr) > 0 {
-		price_info.Cur.X = arr[0].Point.X
-		price_info.Cur.Y = arr[0].Point.Y
-		price_info.Min.X = arr[0].Point.X
-		price_info.Min.Y = arr[0].Point.Y
-		price_info.Max.X = arr[0].Point.X
-		price_info.Max.Y = arr[0].Point.Y
+		tmp.Cur.X = arr[0].Point.X
+		tmp.Cur.Y = arr[0].Point.Y
+		tmp.Min.X = arr[0].Point.X
+		tmp.Min.Y = arr[0].Point.Y
+		tmp.Max.X = arr[0].Point.X
+		tmp.Max.Y = arr[0].Point.Y
 	}
 	var break_timeframes int = 0
 
 	for _, v := range arr {
 
-		//stop_cnt := v.Xcnt
-
-		if v.Point.Y >= price_info.Max.Y {
-			price_info.Max.Y = v.Point.Y
-			price_info.Max.X = v.Point.X
+		if v.Point.Y >= tmp.Max.Y {
+			tmp.Max.Y = v.Point.Y
+			tmp.Max.X = v.Point.X
 		} else {
-			price_info.Min.Y = v.Point.Y
-			price_info.Min.X = v.Point.X
+			tmp.Min.Y = v.Point.Y
+			tmp.Min.X = v.Point.X
 		}
 
-		for i, t := range TimeFrames {
-			if v.Xcnt > t.Day && break_timeframes <= i {
-				break_timeframes = i
+		for _, t := range TimeFrames {
+			if v.Xcnt > t.Day && break_timeframes < t.Day {
+				break_timeframes = t.Day
 
 				max_item := cmm_model.Tb52Weeks{
 					Code_id:       code_id,
@@ -109,14 +109,14 @@ func findPointInfo(code_id int, arr []model.PointInfo, price_type int) []cmm_mod
 						Y: v.Point.Y,
 					},
 					P2: cmm_model.P{
-						X: price_info.Cur.X,
-						Y: price_info.Cur.Y,
+						X: tmp.Cur.X,
+						Y: tmp.Cur.Y,
 					},
 					P3: cmm_model.P{
-						X: price_info.Max.X,
-						Y: price_info.Max.Y,
+						X: tmp.Max.X,
+						Y: tmp.Max.Y,
 					},
-					P32y_percent: cmm_model.Get_percent(price_info.Max.Y, price_info.Cur.Y),
+					P32y_percent: cmm_model.Get_percent(tmp.Max.Y, tmp.Cur.Y),
 				}
 				res = append(res, max_item)
 
@@ -131,15 +131,15 @@ func findPointInfo(code_id int, arr []model.PointInfo, price_type int) []cmm_mod
 						Y: v.Point.Y,
 					},
 					P2: cmm_model.P{
-						X: price_info.Cur.X,
-						Y: price_info.Cur.Y,
+						X: tmp.Cur.X,
+						Y: tmp.Cur.Y,
 					},
 					P3: cmm_model.P{
-						X: price_info.Min.X,
-						Y: price_info.Min.Y,
+						X: tmp.Min.X,
+						Y: tmp.Min.Y,
 					},
 
-					P32y_percent: cmm_model.Get_percent(price_info.Min.Y, price_info.Cur.Y),
+					P32y_percent: cmm_model.Get_percent(tmp.Min.Y, tmp.Cur.Y),
 				}
 				res = append(res, min_item)
 			}
@@ -168,5 +168,14 @@ func setTimeFrames() {
 	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 10, UnitType: 2, UnitVal: 10})
 	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 11, UnitType: 2, UnitVal: 11})
 	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 12, UnitType: 2, UnitVal: 12})
+
+}
+
+//일자 목록 구하기
+func setTimeFrames2() {
+
+	for i := 1; i <= 52; i++ {
+		TimeFrames = append(TimeFrames, model.TimeFrame{Day: 7 * i, UnitType: 1, UnitVal: i})
+	}
 
 }

@@ -24,6 +24,19 @@ order by dt desc
 `
 
 /*
+	테이블 초기화
+*/
+func Initail_table() {
+	query := `TRUNCATE table project.tb_52_weeks`
+
+	_, err := db.Conn.Exec(query)
+	if err != nil {
+		logging.Log.Fatalln(err, query)
+		panic(err)
+	}
+}
+
+/*
 	조회 및 가격별 분류 및 반환
 */
 func SelectList(code_id int) (model.CodeInfo, error) {
