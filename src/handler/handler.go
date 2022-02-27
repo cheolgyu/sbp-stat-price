@@ -16,7 +16,7 @@ var CONFIG_LP = -1
 var CONFIG_HP = -1
 
 func init() {
-	setTimeFrames2()
+	setTimeFrames()
 	configs, _ := dao.GetConfigListByUpperCode()
 	Configs = configs
 
@@ -99,11 +99,10 @@ func findPointInfo(code_id int, arr []model.PointInfo, price_type int) []cmm_mod
 				break_timeframes = t.Day
 
 				max_item := cmm_model.Tb52Weeks{
-					Code_id:       code_id,
-					Price_type:    price_type,
-					P3_type:       cmm_model.P3_type_HIGH,
-					P1x_Unit_type: t.UnitType,
-					P1x_Unit:      t.UnitVal,
+					Code_id:    code_id,
+					Price_type: price_type,
+					P3_type:    cmm_model.P3_type_HIGH,
+					P1x_Left:   t.Day,
 					P1: cmm_model.P{
 						X: v.Point.X,
 						Y: v.Point.Y,
@@ -121,11 +120,10 @@ func findPointInfo(code_id int, arr []model.PointInfo, price_type int) []cmm_mod
 				res = append(res, max_item)
 
 				min_item := cmm_model.Tb52Weeks{
-					Code_id:       code_id,
-					Price_type:    price_type,
-					P3_type:       cmm_model.P3_type_LOW,
-					P1x_Unit_type: t.UnitType,
-					P1x_Unit:      t.UnitVal,
+					Code_id:    code_id,
+					Price_type: price_type,
+					P3_type:    cmm_model.P3_type_LOW,
+					P1x_Left:   t.Day,
 					P1: cmm_model.P{
 						X: v.Point.X,
 						Y: v.Point.Y,
@@ -152,27 +150,6 @@ func findPointInfo(code_id int, arr []model.PointInfo, price_type int) []cmm_mod
 
 //일자 목록 구하기
 func setTimeFrames() {
-
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 7, UnitType: 1, UnitVal: 1})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 14, UnitType: 1, UnitVal: 2})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 28, UnitType: 1, UnitVal: 3})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 1, UnitType: 2, UnitVal: 1})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 2, UnitType: 2, UnitVal: 2})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 3, UnitType: 2, UnitVal: 3})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 4, UnitType: 2, UnitVal: 4})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 5, UnitType: 2, UnitVal: 5})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 6, UnitType: 2, UnitVal: 6})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 7, UnitType: 2, UnitVal: 7})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 8, UnitType: 2, UnitVal: 8})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 9, UnitType: 2, UnitVal: 9})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 10, UnitType: 2, UnitVal: 10})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 11, UnitType: 2, UnitVal: 11})
-	TimeFrames = append(TimeFrames, model.TimeFrame{Day: 30 * 12, UnitType: 2, UnitVal: 12})
-
-}
-
-//일자 목록 구하기
-func setTimeFrames2() {
 
 	for i := 1; i <= 52; i++ {
 		TimeFrames = append(TimeFrames, model.TimeFrame{Day: 7 * i, UnitType: 1, UnitVal: i})

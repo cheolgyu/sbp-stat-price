@@ -10,8 +10,8 @@ import (
 )
 
 const query_insert = `INSERT INTO project.tb_52_weeks( ` +
-	` code_id, price_type, p1x_unit_type, p1x_unit, p1x, p1y, p2x, p2y, p3x, p3y, p3_type, p32y_percent) ` +
-	` VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12); `
+	` code_id, price_type, p1x_Left, p1x, p1y, p2x, p2y, p3x, p3y, p3_type, p32y_percent) ` +
+	` VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11); `
 
 const query_select_list = `
 with tmp as (select TO_DATE(max(dt::text),'YYYYMMDD') - 365  as before_year
@@ -91,7 +91,7 @@ func Insert(list []cmm_model.Tb52Weeks) error {
 
 		//code_id, price_type, p1x_unit_type, p1x_unit, p1x, p1y, p2x, p2y, p3x, p3y, p3_type, p32y_percent
 		_, err := stmt.Exec(
-			item.Code_id, item.Price_type, item.P1x_Unit_type, item.P1x_Unit,
+			item.Code_id, item.Price_type, item.P1x_Left,
 			item.P1.X, item.P1.Y, item.P2.X, item.P2.Y, item.P3.X, item.P3.Y,
 			item.P3_type, item.P32y_percent,
 		)
