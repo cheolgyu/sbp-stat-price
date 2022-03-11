@@ -3,10 +3,10 @@ package dao
 import (
 	"fmt"
 
-	"github.com/cheolgyu/stock-write-common/db"
-	"github.com/cheolgyu/stock-write-common/logging"
-	cmm_model "github.com/cheolgyu/stock-write-model/model"
-	"github.com/cheolgyu/stock-write-project-52-weeks/src/model"
+	"github.com/cheolgyu/sbm-base/db"
+	"github.com/cheolgyu/sbm-base/logging"
+	cmm_model "github.com/cheolgyu/sbm-struct/model"
+	"github.com/cheolgyu/sbp-stat-price/src/model"
 )
 
 const query_insert = `INSERT INTO project.tb_52_weeks( ` +

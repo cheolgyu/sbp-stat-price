@@ -3,11 +3,11 @@ package dao
 import (
 	"log"
 
-	"github.com/cheolgyu/stock-write-common/db"
-	"github.com/cheolgyu/stock-write-model/model"
-	mod_code "github.com/cheolgyu/stock-write-module-meta/code"
-	mod_config "github.com/cheolgyu/stock-write-module-meta/config"
-	"github.com/cheolgyu/stock-write-project-52-weeks/src/c"
+	"github.com/cheolgyu/sbm-base/db"
+	"github.com/cheolgyu/sbm-struct/model"
+	mod_code "github.com/cheolgyu/sbmt-meta/code"
+	mod_config "github.com/cheolgyu/sbmt-meta/config"
+	"github.com/cheolgyu/sbp-stat-price/src/c"
 )
 
 func Update_info() {
