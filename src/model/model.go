@@ -1,7 +1,7 @@
 package model
 
 import (
-	cmm_model "github.com/cheolgyu/sbm-struct/model"
+	cmm_model "github.com/cheolgyu/model"
 )
 
 /*

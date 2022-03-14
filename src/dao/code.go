@@ -3,11 +3,11 @@ package dao
 import (
 	"log"
 
-	"github.com/cheolgyu/sbm-base/db"
-	"github.com/cheolgyu/sbm-struct/model"
-	mod_code "github.com/cheolgyu/sbmt-meta/code"
-	mod_config "github.com/cheolgyu/sbmt-meta/config"
+	"github.com/cheolgyu/base/db"
+	"github.com/cheolgyu/model"
 	"github.com/cheolgyu/sbp-stat-price/src/c"
+	mod_code "github.com/cheolgyu/tb/code"
+	mod_config "github.com/cheolgyu/tb/config"
 )
 
 func Update_info() {

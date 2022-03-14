@@ -3,9 +3,9 @@ package dao
 import (
 	"fmt"
 
-	"github.com/cheolgyu/sbm-base/db"
-	"github.com/cheolgyu/sbm-base/logging"
-	cmm_model "github.com/cheolgyu/sbm-struct/model"
+	"github.com/cheolgyu/base/db"
+	"github.com/cheolgyu/base/logging"
+	cmm_model "github.com/cheolgyu/model"
 	"github.com/cheolgyu/sbp-stat-price/src/model"
 )
 
